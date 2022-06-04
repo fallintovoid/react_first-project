@@ -1,6 +1,6 @@
 import { Component } from "react";
 
-import "./app.css";
+import "./app.scss";
 import AppInfo from "../app-info/app-info";
 import SearchPanel from "../search-panel/search-panel";
 import AppFilter from "../app-filter/app-filter";
@@ -33,7 +33,9 @@ class App extends Component{
                     rise: false,
                     id: 3
                 }
-            ]
+            ],
+            term: '',
+            filter: ''
         }
         this.maxId = 4;
     }
@@ -80,17 +82,48 @@ class App extends Component{
         }))
     }
 
+    onSearch = (items, term) => {
+        if (term.length === 0){
+            return items;
+        }
+        return items.filter(item => {return item.name.includes(term)})
+    }
+
+    onGetValue = (term) => {
+        this.setState({term})
+    }
+    
+    onGetFilter = (items, filter) => {
+        switch(filter){
+            case 'rise': return items.filter(item=>item.rise)
+            case 'moreThan1000': return items.filter(item=>item.salary > 1000)
+            default: return items
+        }
+    }
+
+
+    onGetFilterState = (filter) => {
+        this.setState({filter})
+    }
+
     render() {
-        const {data} = this.state;
+        const {data, term, filter} = this.state;
+        const riseAmount = data.filter(item => item.increase).length;
+        const visibleData = this.onGetFilter(this.onSearch(data, term), filter)
+
         return (
             <div className="app">
-                <AppInfo/>
+                <AppInfo
+                employAmount = {data.length}
+                employRise = {riseAmount}/>
                 <div className="search-panel">
-                    <SearchPanel/>
-                    <AppFilter/>
+                    <SearchPanel
+                    onGetValue={this.onGetValue}/>
+                    <AppFilter
+                    onGetFilterState={this.onGetFilterState}/>
                 </div>
                 <EmployeesList 
-                    data={data}
+                    data={visibleData}
                     onDelete = {this.deleteItem}
                     onToggleIncrease = {this.onToggleIncrease}
                     onToggleRise = {this.onToggleRise}/>
